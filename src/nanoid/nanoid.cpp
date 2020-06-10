@@ -6,7 +6,7 @@
 
 static std::string _default_dict = "_-0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 static std::size_t _default_size = 21;
-static NANOID_NAMESPACE::crypto_random<std::random_device> _random;
+static NANOID_NAMESPACE::crypto_random<std::mt19937> _random(std::random_device{}());
 
 using __gen_func_type = std::string(*)(NANOID_NAMESPACE::crypto_random_base&, const std::string&, std::size_t);
 

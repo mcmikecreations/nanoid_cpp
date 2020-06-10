@@ -24,6 +24,8 @@ namespace NANOID_NAMESPACE
 		crypto_random& operator=(const crypto_random& other) = delete;
 		crypto_random(const crypto_random&) = delete;
 		crypto_random() : _generator() {}
+		template <class ..._Args>
+		crypto_random(_Args... args) : _generator(std::forward<_Args>(args)...) {}
 
 		static constexpr result_type(min)() {
 			return _UniformRandomBitGenerator::min();

@@ -40,11 +40,16 @@ public:
         std::vector<std::uint8_t> bytes;
         for (std::size_t i = 0; i < size; i += _sequence.size())
         {
-            bytes.insert(std::end(bytes), std::begin(_sequence), std::begin(_sequence) + std::min(size - i, _sequence.size()));
+            bytes.insert(
+                std::end(bytes), 
+                std::begin(_sequence), 
+                std::begin(_sequence) + std::min(size - i, _sequence.size())
+            );
         }
         for (std::size_t i = 0; i < size; ++i)
         {
-            buffer[i] = bytes[i % bytes.size()];
+            //Have to revert order, because original uses reversed buffer, so double-reverse.
+            buffer[i] = bytes[(size - i - 1)];
         }
 	}
 };
@@ -96,7 +101,7 @@ TEST_CASE("TestSingleLetterAlphabet")
     std::string res = nanoid::generate(alphabet, size);
     REQUIRE(res == "aaaaa");
 }
-//TODO - fix this
+
 TEST_CASE("TestPredefinedRandomSequence")
 {
     const std::vector<std::uint8_t> seq{ 2, 255, 3, 7, 7, 7, 7, 7, 0, 1 };
@@ -130,23 +135,46 @@ TEST_CASE("TestGeneratesUrlFriendlyIDs")
         }
     }
 }
-//TODO - check this
+//TODO - check this, it uses standard random_device
 TEST_CASE("TestHasNoCollisions")
 {
     const int count = 100 * 1000;
     std::map<std::string, bool> dictUsed;
+    int fails = 0;
     for (std::size_t dummy = 1; dummy <= count; ++dummy)
     {
         std::string result = nanoid::generate();
         auto it = dictUsed.find(result);
-        CHECK(it == dictUsed.end());
+        fails += (it != dictUsed.end());
         dictUsed[result] = true;
     }
+    CHECK(fails == 0);
 }
-//TODO - write this
+
 TEST_CASE("TestFlatDistribution")
 {
-    
+    const int count = 100 * 1000;
+    std::map<char, int> chars;
+    for (std::size_t dummy = 1; dummy <= count; ++dummy)
+    {
+        auto id = nanoid::generate();
+        for (std::size_t i = 0; i < _default_size; i++)
+        {
+            auto c = id[i];
+            auto it = chars.find(c);
+            if (it == chars.end())
+            {
+                chars[c] = 0;
+            }
+            chars[c] += 1;
+        }
+    }
+
+    for (auto c : chars)
+    {
+        auto distribution = c.second * _default_dict.size() / (double)(count * _default_size);
+        REQUIRE(distribution == Approx(1.0).epsilon(0.05));
+    }
 }
 
 TEST_CASE("TestMask")
