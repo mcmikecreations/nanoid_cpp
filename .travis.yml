@@ -1,7 +1,14 @@
 language: cpp
-
+sudo: required
+dist: bionic
 compiler:
   - gcc
+os:
+  - linux
+
+branches:
+  only:
+  - master
 
 install:
   - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
@@ -24,7 +31,3 @@ before_script:
 script:
   - make
   - make test
-
-branches:
-  only:
-  - master
