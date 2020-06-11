@@ -24,3 +24,7 @@ before_script:
 script:
   - make
   - make test
+
+branches:
+  only:
+  - master
