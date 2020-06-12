@@ -2,6 +2,7 @@
 #include <cmath>
 #include <exception>
 #include <random>
+#include <type_traits>
 #include <vector>
 
 static std::string _default_dict = "_-0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -48,33 +49,37 @@ std::string NANOID_NAMESPACE::generate(const std::string& alphabet, std::size_t 
 std::future<std::string> NANOID_NAMESPACE::generate_async()
 {
 	return std::async
-		(
-		static_cast<__gen_func_type>(generate),
-			static_cast<crypto_random_base&>(_random), _default_dict, _default_size
+	( 
+		(__gen_func_type)(generate),
+		std::ref(static_cast<NANOID_NAMESPACE::crypto_random_base&>(_random)), 
+		std::cref(_default_dict), _default_size
 	);
 }
 std::future<std::string> NANOID_NAMESPACE::generate_async(const std::string& alphabet)
 {
 	return std::async
 	(
-		static_cast<__gen_func_type>(generate),
-		static_cast<crypto_random_base&>(_random), alphabet, _default_size
+		(__gen_func_type)(generate),
+		std::ref(static_cast<NANOID_NAMESPACE::crypto_random_base&>(_random)), 
+		alphabet, _default_size
 	);
 }
 std::future<std::string> NANOID_NAMESPACE::generate_async(std::size_t size)
 {
 	return std::async
 	(
-		static_cast<__gen_func_type>(generate),
-		static_cast<crypto_random_base&>(_random), _default_dict, size
+		(__gen_func_type)(generate),
+		std::ref(static_cast<NANOID_NAMESPACE::crypto_random_base&>(_random)), 
+		std::cref(_default_dict), size
 	);
 }
 std::future<std::string> NANOID_NAMESPACE::generate_async(const std::string& alphabet, std::size_t size)
 {
 	return std::async
 	(
-		static_cast<__gen_func_type>(generate),
-		static_cast<crypto_random_base&>(_random), alphabet, size
+		(__gen_func_type)(generate),
+		std::ref(static_cast<NANOID_NAMESPACE::crypto_random_base&>(_random)), 
+		alphabet, size
 	);
 }
 

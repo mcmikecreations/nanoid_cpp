@@ -1,8 +1,8 @@
 #include <cstdint>
 #include <map>
 #include <string>
-#include <tuple>
 #include <vector>
+#include <utility>
 
 #include "nanoid/nanoid.h"
 
@@ -72,11 +72,12 @@ TEST_CASE("TestCustomAlphabet")
     const std::string alphabet = "1234abcd";
 
     char buff[256];
-    snprintf(buff, sizeof(buff), "[%s]{%d}$", alphabet.c_str(), _default_size);
+    snprintf(buff, sizeof(buff), "[%s]{%lu}$", alphabet.c_str(), _default_size);
     std::string regex = buff;
 
     std::string res = nanoid::generate(alphabet);
     REQUIRE(res.size() == _default_size);
+    INFO(regex);
     REQUIRE_THAT(res, Catch::Matches(regex));
 }
 
@@ -87,10 +88,11 @@ TEST_CASE("TestCustomAlphabetAndSize")
     std::string res = nanoid::generate(alphabet, size);
 
     char buff[256];
-    snprintf(buff, sizeof(buff), "[%s]{%d}$", alphabet.c_str(), size);
+    snprintf(buff, sizeof(buff), "[%s]{%lu}$", alphabet.c_str(), size);
     std::string regex = buff;
 
     REQUIRE(res.size() == size);
+    INFO(regex);
     REQUIRE_THAT(res, Catch::Matches(regex));
 }
 
@@ -107,13 +109,13 @@ TEST_CASE("TestPredefinedRandomSequence")
     const std::vector<std::uint8_t> seq{ 2, 255, 3, 7, 7, 7, 7, 7, 0, 1 };
     predefined_random r(seq);
 
-    using tp = std::tuple<int, std::string>;
+    using tp = std::pair<int, std::string>;
 
     auto tests = GENERATE(tp(4, "adca"), tp(18, "cbadcbadcbadcbadcc"));
 
     const std::string alphabet = "abcde";
 
-    CHECK(nanoid::generate(r, alphabet, std::get<int>(tests)) == std::get<std::string>(tests));
+    CHECK(nanoid::generate(r, alphabet, tests.first) == tests.second);
 }
 
 TEST_CASE("TestAsyncGenerate")

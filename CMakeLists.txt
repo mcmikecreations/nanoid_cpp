@@ -3,6 +3,8 @@ project (nanoid_cpp
     VERSION 2.1.0
     )
 set(CMAKE_CXX_STANDARD 11)
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
 
 add_subdirectory(vendor/catch2)
 
@@ -11,6 +13,7 @@ file(GLOB_RECURSE NANOID_INC_FILES inc/*.h)
 
 add_library(nanoid ${NANOID_SRC_FILES})
 target_include_directories(nanoid PUBLIC inc)
+target_link_libraries(nanoid Threads::Threads)
 #target_compile_options(nanoid PRIVATE
 #  $<$<CXX_COMPILER_ID:MSVC>:/W4>
 #  $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -pedantic>
