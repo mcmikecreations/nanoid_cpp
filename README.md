@@ -4,7 +4,7 @@
 
 A tiny, URL-friendly, unique string ID generator for C++, implementation of [ai's](https://github.com/ai) [nanoid](https://github.com/ai/nanoid)!
 
-**Safe.** It uses `mt19937`, a strong random generator with a seed from `random_device`.
+**Can be Safe.** It uses `mt19937`, a strong random generator with a seed from `random_device` by default, which is [not cryptographically secure](https://github.com/altf4/untwister). However, the library can be expanded using an algorithm of choice (from OpenSSL, Crypto++, Botan, LibCrypto) using the [API](#custom-random-bytes-generator).
 
 **Compact.** It uses more symbols than UUID (`A-Za-z0-9_-`)
 and has the same number of unique options in just 22 symbols instead of 36.
