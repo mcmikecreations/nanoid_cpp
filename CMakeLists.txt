@@ -6,6 +6,9 @@ set(CMAKE_CXX_STANDARD 11)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
+option(BUILD_TESTS "Build nanoid unit tests" ON)
+option(BUILD_EXAMPLES "Build nanoid usage examples" ON)
+
 add_subdirectory(vendor/catch2)
 
 file(GLOB_RECURSE NANOID_SRC_FILES src/*.cpp)
@@ -20,14 +23,23 @@ target_link_libraries(nanoid Threads::Threads)
 #)
 
 #############################################
+# Examples
+if (BUILD_EXAMPLES)
+    add_subdirectory(examples)
+    message(STATUS "Added examples to build")
+endif()
+
+#############################################
 # Unit tests
+if (BUILD_TESTS)
+    enable_testing()
+    add_executable(nanoid_tests tests/unit_tests.cpp)
 
-enable_testing()
-add_executable(nanoid_tests tests/unit_tests.cpp)
+    target_link_libraries(nanoid_tests
+            nanoid
+            Catch2::Test
+            )
 
-target_link_libraries(nanoid_tests
-    nanoid
-    Catch2::Test
-)
-
-add_test(test_all nanoid_tests)
+    add_test(test_all nanoid_tests)
+    message(STATUS "Added tests to build")
+endif()

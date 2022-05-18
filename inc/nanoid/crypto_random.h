@@ -11,29 +11,29 @@ namespace NANOID_NAMESPACE
 	{
 	public:
 		virtual void next_bytes(std::uint8_t* buffer, std::size_t size); //Cannot be pure virtual due to std::async semantics
-		virtual ~crypto_random_base(){}
+		virtual ~crypto_random_base()= default;
 	};
 
-	template <class _UniformRandomBitGenerator>
+	template <class UniformRandomBitGenerator>
 	class crypto_random : public crypto_random_base
 	{
 	private:
-		_UniformRandomBitGenerator _generator;
+		UniformRandomBitGenerator _generator;
 	public:
 		using result_type = std::uint32_t;
 
 		crypto_random& operator=(const crypto_random& other) = delete;
 		crypto_random(const crypto_random&) = delete;
 		crypto_random() : _generator() {}
-		template <class ..._Args>
-		crypto_random(_Args... args) : _generator(std::forward<_Args>(args)...) {}
+		template <class ...Args>
+		explicit crypto_random(Args... args) : _generator(std::forward<Args>(args)...) {}
 
 		static constexpr result_type(min)() {
-			return _UniformRandomBitGenerator::min();
+			return UniformRandomBitGenerator::min();
 		}
 
 		static constexpr result_type(max)() {
-			return _UniformRandomBitGenerator::max();
+			return UniformRandomBitGenerator::max();
 		}
 
 		result_type operator()() {

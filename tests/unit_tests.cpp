@@ -1,63 +1,83 @@
-#include <cstdint>
 #include <map>
 #include <string>
-#include <vector>
 #include <utility>
+#include <vector>
 
 #include "nanoid/nanoid.h"
 
 #define CATCH_CONFIG_MAIN
 #include "catch2/catch.h"
 
-static std::string _default_dict = "_-0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-static std::size_t _default_size = 21;
+namespace unit_tests {
+    static char const* default_dict = "_-0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    static std::size_t default_size = 21;
 
-class predefined_random : public NANOID_NAMESPACE::crypto_random_base
-{
-public:
-	using result_type = std::uint32_t;
-private:
-	std::vector<std::uint8_t> _sequence;
-public:
-	predefined_random& operator=(const predefined_random& other) = delete;
-	predefined_random(const predefined_random&) = delete;
-	predefined_random(const std::vector<std::uint8_t>& vec) : _sequence(vec) {}
+    int clz32(int x)
+    {
+        const int numIntBits = sizeof(int) * 8; //compile time constant
+        //do the smearing
+        x |= x >> 1;
+        x |= x >> 2;
+        x |= x >> 4;
+        x |= x >> 8;
+        x |= x >> 16;
+        //count the ones
+        x -= x >> 1 & 0x55555555;
+        x = (x >> 2 & 0x33333333) + (x & 0x33333333);
+        x = (x >> 4) + x & 0x0f0f0f0f;
+        x += x >> 8;
+        x += x >> 16;
+        return numIntBits - (x & 0x0000003f); //subtract # of 1s from 32
+    }
 
-	static constexpr result_type(min)() {
-		return std::numeric_limits<std::uint32_t>::min();
-	}
+    class predefined_random : public NANOID_NAMESPACE::crypto_random_base
+    {
+    public:
+        using result_type = std::uint32_t;
+    private:
+        std::vector<std::uint8_t> _sequence;
+    public:
+        predefined_random& operator=(const predefined_random& other) = delete;
+        predefined_random(const predefined_random&) = delete;
+        explicit predefined_random(std::vector<std::uint8_t> vec) : _sequence(std::move(vec)) {}
 
-	static constexpr result_type(max)() {
-		return std::numeric_limits<std::uint32_t>::max();
-	}
-
-	result_type operator()() {
-		result_type res = _sequence[0];
-	}
-
-	void next_bytes(std::uint8_t* buffer, std::size_t size) override
-	{
-        std::vector<std::uint8_t> bytes;
-        for (std::size_t i = 0; i < size; i += _sequence.size())
-        {
-            bytes.insert(
-                std::end(bytes), 
-                std::begin(_sequence), 
-                std::begin(_sequence) + std::min(size - i, _sequence.size())
-            );
+        static constexpr result_type(min)() {
+            return std::numeric_limits<std::uint32_t>::min();
         }
-        for (std::size_t i = 0; i < size; ++i)
-        {
-            //Have to revert order, because original uses reversed buffer, so double-reverse.
-            buffer[i] = bytes[(size - i - 1)];
+
+        static constexpr result_type(max)() {
+            return std::numeric_limits<std::uint32_t>::max();
         }
-	}
-};
+
+        result_type operator()() {
+            result_type res = _sequence[0];
+            return res;
+        }
+
+        void next_bytes(std::uint8_t* buffer, std::size_t size) override
+        {
+            std::vector<std::uint8_t> bytes;
+            for (std::size_t i = 0; i < size; i += _sequence.size())
+            {
+                bytes.insert(
+                        std::end(bytes),
+                        std::begin(_sequence),
+                        std::begin(_sequence) + (long)std::min(size - i, _sequence.size())
+                );
+            }
+            for (std::size_t i = 0; i < size; ++i)
+            {
+                //Have to revert order, because original uses reversed buffer, so double-reverse.
+                buffer[i] = bytes[(size - i - 1)];
+            }
+        }
+    };
+}
 
 TEST_CASE("TestDefault")
 {
     std::string res = nanoid::generate();
-    REQUIRE(res.size() == _default_size);
+    REQUIRE(res.size() == unit_tests::default_size);
 }
 
 TEST_CASE("TestCustomSize")
@@ -72,12 +92,12 @@ TEST_CASE("TestCustomAlphabet")
     const std::string alphabet = "1234abcd";
 
     char buff[256];
-    snprintf(buff, sizeof(buff), "[%s]{%lu}$", alphabet.c_str(), _default_size);
+    snprintf(buff, sizeof(buff), "[%s]{%lu}$", alphabet.c_str(), unit_tests::default_size);
     std::string regex = buff;
 
     std::string res = nanoid::generate(alphabet);
-    REQUIRE(res.size() == _default_size);
-    INFO(regex);
+    REQUIRE(res.size() == unit_tests::default_size);
+    INFO(regex)
     REQUIRE_THAT(res, Catch::Matches(regex));
 }
 
@@ -92,7 +112,7 @@ TEST_CASE("TestCustomAlphabetAndSize")
     std::string regex = buff;
 
     REQUIRE(res.size() == size);
-    INFO(regex);
+    INFO(regex)
     REQUIRE_THAT(res, Catch::Matches(regex));
 }
 
@@ -107,7 +127,7 @@ TEST_CASE("TestSingleLetterAlphabet")
 TEST_CASE("TestPredefinedRandomSequence")
 {
     const std::vector<std::uint8_t> seq{ 2, 255, 3, 7, 7, 7, 7, 7, 0, 1 };
-    predefined_random r(seq);
+    unit_tests::predefined_random r(seq);
 
     using tp = std::pair<int, std::string>;
 
@@ -121,7 +141,7 @@ TEST_CASE("TestPredefinedRandomSequence")
 TEST_CASE("TestAsyncGenerate")
 {
     std::string res = nanoid::generate_async().get();
-    REQUIRE(res.size() == _default_size);
+    REQUIRE(res.size() == unit_tests::default_size);
 }
 
 TEST_CASE("TestGeneratesUrlFriendlyIDs")
@@ -129,7 +149,7 @@ TEST_CASE("TestGeneratesUrlFriendlyIDs")
     for (int i = 1; i <= 10; ++i)
     {
         std::string res = nanoid::generate();
-        REQUIRE(res.size() == _default_size);
+        REQUIRE(res.size() == unit_tests::default_size);
 
         for (std::size_t j = 0; j < res.size(); ++j)
         {
@@ -160,7 +180,7 @@ TEST_CASE("TestFlatDistribution")
     for (std::size_t dummy = 1; dummy <= count; ++dummy)
     {
         auto id = nanoid::generate();
-        for (std::size_t i = 0; i < _default_size; i++)
+        for (std::size_t i = 0; i < unit_tests::default_size; i++)
         {
             auto c = id[i];
             auto it = chars.find(c);
@@ -174,7 +194,7 @@ TEST_CASE("TestFlatDistribution")
 
     for (auto c : chars)
     {
-        auto distribution = c.second * _default_dict.size() / (double)(count * _default_size);
+        auto distribution = (double)(c.second * strlen(unit_tests::default_dict)) / (double)(count * unit_tests::default_size);
         REQUIRE(distribution == Approx(1.0).epsilon(0.05));
     }
 }
@@ -184,7 +204,7 @@ TEST_CASE("TestMask")
     for (auto length = 1; length < 256; length++)
     {
         auto mask1 = (2 << (int)std::floor(std::log(length - 1) / std::log(2))) - 1;
-        auto mask2 = (2 << 31 - NANOID_NAMESPACE::impl::clz32((length - 1) | 1)) - 1;
+        auto mask2 = (2 << (31 - unit_tests::clz32((length - 1) | 1))) - 1;
         REQUIRE(mask1 == mask2);
     }
 }

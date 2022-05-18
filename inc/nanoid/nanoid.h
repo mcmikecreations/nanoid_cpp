@@ -22,9 +22,4 @@ namespace NANOID_NAMESPACE
 	std::string generate(crypto_random_base& random, const std::string& alphabet);
 	std::string generate(crypto_random_base& random, std::size_t size);
 	std::string generate(crypto_random_base& random, const std::string& alphabet, std::size_t size);
-
-	namespace impl
-	{
-		int clz32(int x);
-	}
 }
