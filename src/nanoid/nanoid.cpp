@@ -113,7 +113,7 @@ std::string NANOID_NAMESPACE::generate(crypto_random_base& random, const std::st
 
 	std::size_t alphSize = alphabet.size();
 
-    // See https://github.com/ai/nanoid/blob/master/format.js for
+    // See https://github.com/ai/nanoid/blob/main/README.md#Security for
     // explanation why masking is use (`random % alphabet` is a common
     // mistake security-wise).
     const std::size_t mask = (  2 << (31 - impl::clz32(    (int)((alphSize - 1) | 1)    ))  ) - 1;
