@@ -1,5 +1,5 @@
 # nanoid-cpp
-[![Build Status](https://travis-ci.org/mcmikecreations/nanoid_cpp.svg?branch=master)](https://travis-ci.org/mcmikecreations/nanoid_cpp)
+[![Build status](https://github.com/mcmikecreations/nanoid_cpp/actions/workflows/cmake-multi-platform.yml/badge.svg?branch=master)](actions)
 [![License](https://img.shields.io/badge/license-MIT%20License-blue.svg)](LICENSE)
 
 A tiny, URL-friendly, unique string ID generator for C++, implementation of [ai's](https://github.com/ai) [nanoid](https://github.com/ai/nanoid)!
